@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'sudoku_db'
+      MYSQL_USER: 'sudoku'
+      MYSQL_PASSWORD: 'sudoku'
+      MYSQL_ROOT_PASSWORD: 'sudoku'
+    ports:
+      - "3306:3306"

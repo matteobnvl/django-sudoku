@@ -1,0 +1,5 @@
+[client]
+database = sudoku_db
+user = sudoku
+password = sudoku
+default-character-set = utf8
