@@ -1,0 +1,20 @@
+{% extends 'base_site.html' %}
+
+{% block title %}Jeu{% endblock %}
+
+{% block content %}
+    <h1>Jeu sudoku</h1>
+    <table>
+        {% for lignes in sudoku %}
+            <tr>
+                {% for cases in lignes %}
+                    <td>
+                        {{ cases }}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+    
+    
+{% endblock %}

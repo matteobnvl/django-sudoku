@@ -6,5 +6,7 @@ urlpatterns = [
     path('', views.index, name="index"),
     path('register/', views.register, name="register"),
     path('dashboard/', views.dashboard, name="dashboard"),
-    path('proifl/', views.profil, name="profil")
+    path('proifl/', views.profil, name="profil"),
+    path('generate/', views.generate_sudoku, name="generate"),
+    path('play/<int:pk>', views.play, name="play")
 ]

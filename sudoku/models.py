@@ -59,4 +59,4 @@ class Sudoku(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     
     def __str__(self):
-        return f"Sudoku {self.id} - {self.niveau} - {self.createdAt}"
+        return f"Sudoku {self.id} - {self.niveau} - {self.created_at}"
