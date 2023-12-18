@@ -50,5 +50,9 @@ def dashboard(request):
     return render(request, 'dashboard/index.html')
 
 
+def profil(request):
+    return render(request, 'profile/index.html')
+
+
 def page_not_found_view(request):
     return render(request,'error.html', context={})
