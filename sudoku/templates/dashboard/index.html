@@ -7,11 +7,13 @@
     <section class="bg-white dark:bg-gray-900 pt-10">
         <div class="px-4 mx-auto max-w-screen-xl h-screen lg:px-6">
             <div class="pb-10 flex justify-center items-center">
-                <button class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
+                <a href="{% url 'generate' %}" class="text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 lg:px-5 py-2 lg:py-2.5 mr-2 dark:bg-primary-600 dark:hover:bg-primary-700 focus:outline-none dark:focus:ring-primary-800">
                     Jouer <i class="fa-solid fa-play ml-5"></i>
-                </button>
+                </a>
             </div>
             <div class="space-y-8 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-12 md:space-y-0">
+                {% if sudokus %}
+                {% for sudoku in sudokus %}
                 <div class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
                     <div class="flex justify-end px-4 pt-4">
                         <!-- a la couble générer un id unique pour le dropdown -->
@@ -23,7 +25,7 @@
                         <div id="dropdown-1" class="z-10 hidden text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
                             <ul class="py-2" aria-labelledby="dropdownButton">
                                 <li>
-                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
+                                    <a href="{% url 'play' sudoku.id %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white">
                                         Reprendre <i class="fa-solid fa-reply ml-3"></i>
                                     </a>
                                 </li>
@@ -40,11 +42,15 @@
                             <!-- Ici sudoku -->
                         </div>
                         <div class="flex mt-4 md:mt-6">
-                            <a href="#" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="{% url 'play' sudoku.id %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Continuer à jouer
                             </a>
                     </div>
                 </div>
+                {% endfor %}
+                {% else %}
+                <p>Aucun sudoku</p>
+                {% endif %}
             </div>
         </div>
     </section>
