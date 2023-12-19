@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.utils.html import escape
+from django.db.models import Q
 from django.http import JsonResponse
 from django.contrib.auth import login
-from django.http import Http404
 from django.urls import reverse
-from .forms import RegisterForm, SudokuForm
-from .models import Sudoku
+from .forms import RegisterForm, SudokuForm, ProfilForm
+from .models import Sudoku, Player
 from .sudoku import SudokuEntity
 import json
 
@@ -29,13 +30,13 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    sudokus = Sudoku.objects.filter(player=request.user)
-    return render(request, 'dashboard/index.html', {'sudokus': sudokus})
+    all_sudoku = Sudoku.objects.filter(player=request.user)
+    sudokus = Sudoku.objects.filter(player=request.user, is_finish=False)
+    return render(request, 'dashboard/index.html', {'sudokus': sudokus, 'nb_sudoku': len(all_sudoku)})
 
 @login_required
 def generate_sudoku(request):
-
-    sudoku = SudokuEntity()
+    sudoku = SudokuEntity(niveau=request.user.niveau)
     sudoku.generate()
     form = SudokuForm({
         'tableau': sudoku.tableau,
@@ -52,8 +53,8 @@ def play(request, pk):
     player = request.user
     sudoku = get_object_or_404(Sudoku, id=pk, player=player)
     return render(request, 'play/index.html', {
-        'sudoku': json.loads(sudoku.tableau),
-        'id_sudoku': sudoku.id
+        'tableau': json.loads(sudoku.tableau),
+        'sudoku': sudoku,
     })
     
 @csrf_exempt   
@@ -86,9 +87,64 @@ def delete(request):
             return JsonResponse({'success': True, 'message': 'Données reçues avec succès'})
         else: 
             return JsonResponse({'success': False, 'message': 'Impoosible de supprimer ces données'})
+        
+@csrf_exempt
+@login_required
+def verif_sudoku(request):
+    if request.method == 'POST':
+        id_sudoku = request.POST.get('id')
+        
+        sudoku = Sudoku.objects.get(id=id_sudoku)
+        tableau = json.loads(sudoku.tableau)
+        solution = json.loads(sudoku.solution)
+        errors = []
+        for indice_lignes in range(len(tableau)):
+            for indice_case in range(len(tableau[indice_lignes])):
+                if tableau[indice_lignes][indice_case] >= 10:
+                    if tableau[indice_lignes][indice_case]/10 != solution[indice_lignes][indice_case]:
+                        error = {
+                            'key': f"{str(indice_lignes)}-{str(indice_case)}",
+                            'value': False
+                        }
+                        errors.append(error)
+        if errors == []:
+            sudoku.is_finish = True
+            sudoku.save()
+            return JsonResponse({'success': True, 'message': 'Bravo vous avez réussis le sudoku'})
+        return JsonResponse({'success': True, 'message': "Vous n'avez pas réussis, il y a des erreurs", 'data': errors})
+    
+@csrf_exempt
+@login_required
+def check_error(request):
+    if request.method == 'POST':
+        id_sudoku = request.POST.get('id')
+        
+        sudoku = Sudoku.objects.get(id=id_sudoku)
+        tableau = json.loads(sudoku.tableau)
+        solution = json.loads(sudoku.solution)
+        tableau_verif = []
+        for indice_lignes in range(len(tableau)):
+            for indice_case in range(len(tableau[indice_lignes])):
+                if tableau[indice_lignes][indice_case] >= 10:
+                    value = {
+                        'key': f"{str(indice_lignes)}-{str(indice_case)}",
+                        'value': (tableau[indice_lignes][indice_case]/10) == solution[indice_lignes][indice_case]
+                    }
+                    tableau_verif.append(value)
+        return JsonResponse({'success': True, 'data': tableau_verif})
 
 
 def profil(request):
+    if request.method == 'POST':
+        player = Player.objects.get(id=request.user.id)
+        if len(Player.objects.filter(~Q(id=request.user.id), email=request.POST.get('email'))) < 1:
+            player.email = escape(request.POST.get('email'))
+            player.pseudo = escape(request.POST.get('pseudo'))
+            if request.POST.get('niveau') in ['easy', 'medium', 'hard']:
+                player.niveau = escape(request.POST.get('niveau'))
+            player.save()
+        else:
+            return render(request, 'profile/index.html', {'errors': "L'email renseigné est déjà utilisé"})
     return render(request, 'profile/index.html')
 
 

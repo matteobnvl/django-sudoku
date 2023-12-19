@@ -4,9 +4,11 @@
             <h2 class="mb-4 text-4xl tracking-tight font-extrabold text-gray-900 dark:text-white">
                 Hello {{ user.pseudo }}
             </h2>
-            <p class="text-gray-300">
-                J'ai joué à {{ sudokus|length }} sudoku
-            </p>
+            {% if nb_sudoku %}
+                <p class="text-gray-300">
+                    J'ai joué à {{ nb_sudoku }} sudoku
+                </p>
+            {% endif %}
         </div>
         <div class="flex justify-start items-center">
             <button type="button" class="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="dropdown">

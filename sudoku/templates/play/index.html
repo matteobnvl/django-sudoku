@@ -10,10 +10,10 @@
 {% block content %}
 <section class="bg-gray-900 text-white p-8">
     <div class="flex flex-col">
-        <h1 class="text-4xl font-extrabold my-4">Jeu sudoku <span id="id_sudoku">{{ id_sudoku }}</span></h1>
+        <h1 class="text-4xl font-extrabold my-4">Jeu sudoku <span id="id_sudoku">{{ sudoku.id }}</span> - {{ sudoku.niveau }}</h1>
         <div class="flex max-w-screen-xl px-4 py-8">
             <table class="ml-12 bg-primary-700">
-                {% for lignes in sudoku %}
+                {% for lignes in tableau %}
                     <tr>
                         {% with start_index=forloop.counter0 %}
                             {% for case in lignes %}
@@ -25,9 +25,9 @@
                                         {{ case }}
                                     </td>
                                 {% elif case >= 10 %}
-                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}">{% widthratio case 10 1 %}</td>
+                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}" class="bg-primary-900">{% widthratio case 10 1 %}</td>
                                 {% else %}
-                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}"></td>
+                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}" class="bg-primary-900"></td>
                                 {% endif %}
                             {% endfor %}
                         {% endwith %}
@@ -48,6 +48,42 @@
                 <div data-check="1"><i class="fa-solid fa-lightbulb"></i></div>
                 <div data-verif="1"><i class="fa-solid fa-check"></i></div>
             </section>
+        </div>
+    </div>
+    {% if sudoku.is_finish %}
+        <div tabindex="-1" class="flex overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+            <div class="relative p-4 w-full max-w-md max-h-full">
+                <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                    <div class="p-4 md:p-5 text-center">
+                        <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                        </svg>
+                        <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                            Félicitation vous avez résolu le sudoku 👏
+                        </h3>
+                        <a data-modal-hide="popup-modal" href="{% url 'dashboard' %}" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                            Retour dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div id="popup-modal" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+        <div class="relative p-4 w-full max-w-md max-h-full">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <div class="p-4 md:p-5 text-center">
+                    <svg class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                    </svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                        Félicitation vous avez résolu le sudoku 👏
+                    </h3>
+                    <a data-modal-hide="popup-modal" href="{% url 'dashboard' %}" class="text-white bg-green-600 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center me-2">
+                        Retour dashboard
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -105,29 +141,21 @@ jQuery(document).ready(function($) {
     $('div[data-check]').click(function () {
         console.log('toto')
         $.ajax({
-            url: `${url}/verif/`,
+            url: `${url}/check/`,
             type: 'POST',
             data: {id: id_sudoku},
             success: function (response) {
-                if (response != 'false') {
-                    response = JSON.parse(response)
+                if (response.success != 'false') {
                     vie = parseInt($('#vie').html())
                     vie--
                     $('#vie').html(vie.toString())
                     elements.forEach(function (item) {
-                        response.forEach(function (event) {
+                        response.data.forEach(function (event) {
+                            console.log($(item).attr('data-row'))
                             if ($(item).attr('data-row') == event.key) {
-                                $(item).addClass((event.value)? 'true' : 'false')
+                                $(item).addClass((event.value)? 'text-green-500' : 'text-red-500')
                             }
                         })
-                    })
-                } else {
-                    vie = parseInt($('#vie').html())
-                    vie--
-                    $('#vie').html(vie.toString())
-                    $('#toggleVie').addClass('active')
-                    elements.forEach(function (item) {
-                            item.setAttribute('data-finish', '1')
                     })
                 }
             }
@@ -147,19 +175,16 @@ jQuery(document).ready(function($) {
                 type: 'POST',
                 data: {id: id_sudoku},
                 success: function (response) {
-                    response = JSON.parse(response)
-                    if (response.key == true) {
-                        elements.forEach(function (item) {
-                            item.setAttribute('data-finish', '1')
-                        })
-                        $('#toggleWin').addClass('active')
-                        $('#reussi').html('Bravo tu as réussi ce sudoku !!')
-                        $('#score').html(response.score)
+                    if (response.success == true) {
+                        console.log($('#popup-modal-win'))
+                        $('body').addClass('overflow-hidden')
+                        $('#popup-modal').removeClass('hidden')
+                        $('#popup-modal').addClass('flex')
                     } else {
                         elements.forEach(function (item) {
-                            response.forEach(function (event) {
+                            response.data.forEach(function (event) {
                                 if ($(item).attr('data-row') == event.key) {
-                                    $(item).addClass((event.value)? 'true' : 'false')
+                                    $(item).addClass((event.value)? 'text-green-500' : 'text-red-500')
                                 }
                             })
                         })

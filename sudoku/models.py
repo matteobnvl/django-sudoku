@@ -30,6 +30,7 @@ class Player(AbstractBaseUser, PermissionsMixin):
     TABLEAU_MAX_LENGTH = 250
     pseudo = models.CharField(max_length=TABLEAU_MAX_LENGTH)
     email = models.EmailField(max_length=TABLEAU_MAX_LENGTH, unique=True)
+    niveau = models.CharField(max_length=10, default="easy")
     password = models.CharField(max_length=TABLEAU_MAX_LENGTH)
     created_at = models.DateTimeField('user created', auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -57,6 +58,7 @@ class Sudoku(models.Model):
     niveau = models.CharField(max_length=10, choices=NIVEAU_CHOICES)
     created_at = models.DateTimeField('sudoku created', auto_now_add=True)
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    is_finish = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Sudoku {self.id} - {self.niveau} - {self.created_at}"

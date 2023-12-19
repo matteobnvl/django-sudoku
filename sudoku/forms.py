@@ -13,3 +13,8 @@ class SudokuForm(forms.ModelForm):
     class Meta:
         model = Sudoku
         fields = ['tableau', 'solution', 'niveau']
+        
+class ProfilForm(forms.ModelForm):
+    class Meta:
+        model = Player
+        fields = ['email', 'pseudo', 'niveau']

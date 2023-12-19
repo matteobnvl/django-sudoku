@@ -2,9 +2,9 @@ import random
 import json
 
 class SudokuEntity:
-    def __init__(self, niveau="easy"):
-        self._tableau = []
-        self._solution = []
+    def __init__(self,tableau=[], solution=[], niveau="easy"):
+        self._tableau = tableau
+        self._solution = solution
         self._niveau = niveau
 
     @property
@@ -58,10 +58,5 @@ class SudokuEntity:
         self._tableau = json.dumps(tab, separators=(',', ':'))
         self._solution = json.dumps(grille, separators=(',', ':'))
         print(len(self.tableau))
-
-    #logique de résolution de Sudoku 
-    def solve_sudoku(self, grille):
-        
-        return grille
 
 
