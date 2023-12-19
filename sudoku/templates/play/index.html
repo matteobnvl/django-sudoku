@@ -2,19 +2,173 @@
 
 {% block title %}Jeu{% endblock %}
 
+{% block style %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}
+
 {% block content %}
-    <h1>Jeu sudoku</h1>
-    <table>
-        {% for lignes in sudoku %}
-            <tr>
-                {% for cases in lignes %}
-                    <td>
-                        {{ cases }}
-                    </td>
+<section class="bg-gray-900 text-white p-8">
+    <div class="flex flex-col">
+        <h1 class="text-4xl font-extrabold my-4">Jeu sudoku <span id="id_sudoku">{{ id_sudoku }}</span></h1>
+        <div class="flex max-w-screen-xl px-4 py-8">
+            <table class="ml-12 bg-primary-700">
+                {% for lignes in sudoku %}
+                    <tr>
+                        {% with start_index=forloop.counter0 %}
+                            {% for case in lignes %}
+                                {% if case != 0 and case < 10 %}
+                                    <td
+                                        data-row="{{ start_index }}-{{ forloop.counter0 }}"
+                                        data-td="{{ case }}"
+                                    >
+                                        {{ case }}
+                                    </td>
+                                {% elif case >= 10 %}
+                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}">{% widthratio case 10 1 %}</td>
+                                {% else %}
+                                    <td data-row="{{ start_index }}-{{ forloop.counter0 }}"></td>
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    </tr>
                 {% endfor %}
-            </tr>
-        {% endfor %}
-    </table>
+            </table>
+            <section class="choose-number ml-auto mr-20 place-self-center lg:col-span-7">
+                <div>1</div>
+                <div>2</div>
+                <div>3</div>
+                <div>4</div>
+                <div>5</div>
+                <div>6</div>
+                <div>7</div>
+                <div>8</div>
+                <div>9</div>
+                <div data-del="1"><i class="fa-solid fa-eraser"></i></div>
+                <div data-check="1"><i class="fa-solid fa-lightbulb"></i></div>
+                <div data-verif="1"><i class="fa-solid fa-check"></i></div>
+            </section>
+        </div>
+    </div>
+</section>
+
+<script>
+jQuery(document).ready(function($) {
+    const elements = document.querySelectorAll('td')
+    const chiffres = document.querySelectorAll('.choose-number div')
+    let selected = null
+    let arrayCase = {}
+    const url = 'http://127.0.0.1:8000'
+    const id_sudoku = document.querySelector('span#id_sudoku').textContent
     
+    elements.forEach(function(item) {
+        item.addEventListener('click', function(event) {
+            if ($(item).attr('data-finish') != 1) {
+                elements.forEach(function(item) {
+                    item.classList.remove('selected')
+                })
+                item.classList.add('selected')
+                selected = item
+                }
+            })
+    })
     
+    chiffres.forEach(function(item) {
+        item.addEventListener('click', function(event) {
+            if (selected !== null && $(selected).attr('data-td') === undefined) {
+                attrCase = $(selected).attr('data-row')
+                if ($(item).attr('data-del') == "1") {
+                    selected.textContent = ''
+                    selected.className = ''
+                    $.ajax({
+                        url: `${url}/delete/`,
+                        type: 'POST',
+                        data: {attrCase: attrCase, id: id_sudoku}
+                    })
+                } else if ($(item).attr('data-check') != "1" && $(item).attr('data-verif') != "1") {
+                    selected.textContent = item.textContent
+                    selected.className = ''
+                    arrayCase = {key: attrCase , value: item.textContent}
+                    console.log(arrayCase)
+                    console.log(url)
+                    console.log(id_sudoku)
+                    $.ajax({
+                        url: `${url}/insert/`,
+                        type: 'POST',
+                        data: {arrayCase: arrayCase, id: id_sudoku}
+                    })
+                }
+            }
+        })
+    })
+    
+    $('div[data-check]').click(function () {
+        console.log('toto')
+        $.ajax({
+            url: `${url}/verif/`,
+            type: 'POST',
+            data: {id: id_sudoku},
+            success: function (response) {
+                if (response != 'false') {
+                    response = JSON.parse(response)
+                    vie = parseInt($('#vie').html())
+                    vie--
+                    $('#vie').html(vie.toString())
+                    elements.forEach(function (item) {
+                        response.forEach(function (event) {
+                            if ($(item).attr('data-row') == event.key) {
+                                $(item).addClass((event.value)? 'true' : 'false')
+                            }
+                        })
+                    })
+                } else {
+                    vie = parseInt($('#vie').html())
+                    vie--
+                    $('#vie').html(vie.toString())
+                    $('#toggleVie').addClass('active')
+                    elements.forEach(function (item) {
+                            item.setAttribute('data-finish', '1')
+                    })
+                }
+            }
+        })
+    })
+    
+    $('div[data-verif]').click(function () {
+        var finish = true
+        elements.forEach(function (item) {
+            if (item.textContent == 0) {
+                finish = false
+            }
+        })
+        if (finish) {
+            $.ajax({
+                url: `${url}/finish/`,
+                type: 'POST',
+                data: {id: id_sudoku},
+                success: function (response) {
+                    response = JSON.parse(response)
+                    if (response.key == true) {
+                        elements.forEach(function (item) {
+                            item.setAttribute('data-finish', '1')
+                        })
+                        $('#toggleWin').addClass('active')
+                        $('#reussi').html('Bravo tu as réussi ce sudoku !!')
+                        $('#score').html(response.score)
+                    } else {
+                        elements.forEach(function (item) {
+                            response.forEach(function (event) {
+                                if ($(item).attr('data-row') == event.key) {
+                                    $(item).addClass((event.value)? 'true' : 'false')
+                                }
+                            })
+                        })
+                    }
+                }
+            })
+        }
+    })
+});
+</script>
+
 {% endblock %}

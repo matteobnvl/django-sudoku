@@ -8,9 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css"  rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.js" integrity="sha512-6DC1eE3AWg1bgitkoaRM1lhY98PxbMIbhgYCGV107aZlyzzvaWCW1nJW2vDuYQm06hXrW0As6OGKcIaAVWnHJw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     {% load static %}
     <link rel="shortcut icon" type="image/png" href="{% static 'images/favicons/favicon.ico' %}" >
     <script src="{% static 'js/tailwind.config.js' %}"></script>
+    {% block style %}{% endblock %}
 </head>
 <body>
     <header>
@@ -43,5 +45,7 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    {% block javascript %}{% endblock %}
 </body>
 </html>

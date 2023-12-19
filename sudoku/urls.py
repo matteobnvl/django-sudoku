@@ -8,5 +8,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name="dashboard"),
     path('proifl/', views.profil, name="profil"),
     path('generate/', views.generate_sudoku, name="generate"),
-    path('play/<int:pk>', views.play, name="play")
+    path('play/<int:pk>', views.play, name="play"),
+    path('insert/', views.insert, name="insert"),
+    path('delete/', views.delete, name="delete")
 ]

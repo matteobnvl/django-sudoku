@@ -1,15 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.contrib.auth import login
 from django.http import Http404
 from django.urls import reverse
 from .forms import RegisterForm, SudokuForm
 from .models import Sudoku
-
-# Create your views here.
-
-sudoku = '[[2,0,0,6,3,9,8,0,1],[3,1,0,2,8,0,7,0,0],[0,0,5,0,0,0,2,3,9],[7,3,0,0,5,0,0,0,0],[0,0,8,1,6,7,0,2,5],[5,0,0,0,4,0,0,8,7],[6,9,0,0,0,8,0,1,0],[0,0,0,5,9,0,6,0,2],[1,0,0,3,2,6,0,0,8]]'
-solution = '[[2,7,4,6,3,9,8,5,1],[3,1,9,2,8,5,7,4,6],[8,6,5,7,1,4,2,3,9],[7,3,1,8,5,2,9,6,4],[9,4,8,1,6,7,3,2,5],[5,2,6,9,4,3,1,8,7],[6,9,2,4,7,8,5,1,3],[4,8,3,5,9,1,6,7,2],[1,5,7,3,2,6,4,9,8]]'
+from .sudoku import SudokuEntity
+import json
 
 def index(request):
     return render(request, 'index.html')
@@ -35,14 +34,13 @@ def dashboard(request):
 
 @login_required
 def generate_sudoku(request):
-    """
-    sudoku = new Sudoku()
-    sudoku.generate('easy')
-    """
+
+    sudoku = SudokuEntity()
+    sudoku.generate()
     form = SudokuForm({
-        'tableau': sudoku,
-        'solution': solution,
-        'niveau': 'easy'
+        'tableau': sudoku.tableau,
+        'solution': sudoku.solution,
+        'niveau': sudoku.niveau
     })
     form.instance.player = request.user
     sudoku_instance = form.save()
@@ -54,8 +52,40 @@ def play(request, pk):
     player = request.user
     sudoku = get_object_or_404(Sudoku, id=pk, player=player)
     return render(request, 'play/index.html', {
-        'sudoku': eval(sudoku.tableau)
+        'sudoku': json.loads(sudoku.tableau),
+        'id_sudoku': sudoku.id
     })
+    
+@csrf_exempt   
+@login_required
+def insert(request):
+    if request.method == 'POST':
+        array_case_key = request.POST.get('arrayCase[key]', None)
+        array_case_value = request.POST.get('arrayCase[value]', None)
+        id_sudoku = request.POST.get('id', None)
+        sudoku = Sudoku.objects.get(id=id_sudoku)
+        tableau = json.loads(sudoku.tableau)
+        tableau[int(array_case_key[0])][int(array_case_key[-1])] = int(array_case_value) * 10
+        sudoku.tableau = json.dumps(tableau, separators=(',', ':'))
+        sudoku.save()
+    return JsonResponse({'success': True, 'message': 'Données reçues avec succès'})
+
+
+@csrf_exempt   
+@login_required
+def delete(request):
+    if request.method == 'POST':
+        array_case_key = request.POST.get('attrCase', None)
+        id_sudoku = request.POST.get('id', None)
+        sudoku = Sudoku.objects.get(id=id_sudoku)
+        tableau = json.loads(sudoku.tableau)
+        if tableau[int(array_case_key[0])][int(array_case_key[-1])] == 0 or tableau[int(array_case_key[0])][int(array_case_key[-1])] >= 10:
+            tableau[int(array_case_key[0])][int(array_case_key[-1])] = 0
+            sudoku.tableau = json.dumps(tableau, separators=(',', ':'))
+            sudoku.save()
+            return JsonResponse({'success': True, 'message': 'Données reçues avec succès'})
+        else: 
+            return JsonResponse({'success': False, 'message': 'Impoosible de supprimer ces données'})
 
 
 def profil(request):

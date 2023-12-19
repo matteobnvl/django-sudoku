@@ -1,4 +1,5 @@
 import random
+import json
 
 class SudokuEntity:
     def __init__(self, niveau="easy"):
@@ -30,64 +31,37 @@ class SudokuEntity:
     def niveau(self, value):
         self._niveau = value
 
-    def generate(self, niveau):
+    def generate(self):
         tab = [[0] * 9 for _ in range(9)]
         numbers = list(range(1, 10))
         random.shuffle(numbers)
-
         for j in range(9):
             shift = (j % 3) * 3
             for i in range(9):
                 tab[j][i] = numbers[(shift + i + (j // 3)) % 9]
-
         grille = [row.copy() for row in tab]
-
-        #case vide en fonction des niveaux
-        if niveau == "easy":
+        if self._niveau == "easy":
             case_vide = 30
-        elif niveau == "medium":
+        elif self._niveau == "medium":
             case_vide = 40
-        elif niveau == "difficult":
+        elif self._niveau == "hard":
             case_vide = 50
-
-        for k in range(case_vide):
+            
+        k = 1
+        while (k != case_vide):
             i = random.randint(0, 8)
             j = random.randint(0, 8)
+            if tab[j][i] == 0:
+                continue
             tab[j][i] = 0
-
-        self.tableau = tab
-        self.solution = self.solve_sudoku(tab)
-        self.niveau = niveau
-
-    #appeler generate niveau "difficult" / niveau "difficult"
-    def generate_medium(self):
-        
-        self.generate_medium("medium")
-
-    def generate_difficult(self):
-       
-        self.generate("difficult")
+            k += 1
+        self._tableau = json.dumps(tab, separators=(',', ':'))
+        self._solution = json.dumps(grille, separators=(',', ':'))
+        print(len(self.tableau))
 
     #logique de résolution de Sudoku 
     def solve_sudoku(self, grille):
         
         return grille
-
-
-if __name__ == "__main__":
-    # Générer Sudoku avec le niveau "easy"
-    sudoku_easy = SudokuEntity()
-    sudoku_easy.generate("easy")
-
-    print("Sudoku Easy")
-    print("========================")
-    for ligne in sudoku_easy.tableau:
-        print(ligne)
-
-    print("\nSolution:")
-    for i in sudoku_easy.solution:
-        print(i)
-    print("========================")
-    print(sudoku_easy.tableau)
 
 
