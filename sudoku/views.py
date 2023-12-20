@@ -153,6 +153,5 @@ def profil(request):
             return render(request, 'profile/index.html', {'errors': "L'email renseigné est déjà utilisé", 'stats': stats})
     return render(request, 'profile/index.html', {'stats': stats})
 
-
-def page_not_found_view(request):
-    return render(request,'error.html', context={})
+def render_404(request, exception):
+    return render(request, '404.html', status=404)
