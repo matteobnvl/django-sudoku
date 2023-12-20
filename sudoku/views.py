@@ -135,6 +135,12 @@ def check_error(request):
 
 
 def profil(request):
+    nb_sudoku = len(Sudoku.objects.filter(player=request.user.id))
+    nb_sudoku_finished = len(Sudoku.objects.filter(player=request.user.id, is_finish=True))
+    stats = {
+        'nb_sudoku': nb_sudoku,
+        'nb_sudoku_finished': nb_sudoku_finished
+    }
     if request.method == 'POST':
         player = Player.objects.get(id=request.user.id)
         if len(Player.objects.filter(~Q(id=request.user.id), email=request.POST.get('email'))) < 1:
@@ -144,8 +150,8 @@ def profil(request):
                 player.niveau = escape(request.POST.get('niveau'))
             player.save()
         else:
-            return render(request, 'profile/index.html', {'errors': "L'email renseigné est déjà utilisé"})
-    return render(request, 'profile/index.html')
+            return render(request, 'profile/index.html', {'errors': "L'email renseigné est déjà utilisé", 'stats': stats})
+    return render(request, 'profile/index.html', {'stats': stats})
 
 
 def page_not_found_view(request):
