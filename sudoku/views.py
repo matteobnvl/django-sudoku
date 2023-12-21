@@ -23,7 +23,6 @@ def register(request):
                 login(request, user)
             except Exception as e:
                 print(f"Erreur lors de la sauvegarde : {e}")
-            return redirect('dashboard')
     else: 
         form = RegisterForm()
     return render(request, 'registration/register.html',  {'form': form})
