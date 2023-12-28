@@ -15,17 +15,21 @@ def index(request):
     return render(request, 'index.html')
 
 def register(request):
+    errors = ''
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
             try:
                 user = form.save()
                 login(request, user)
+                return redirect('dashboard')
             except Exception as e:
                 print(f"Erreur lors de la sauvegarde : {e}")
+        else:
+            errors = form.errors
     else: 
         form = RegisterForm()
-    return render(request, 'registration/register.html',  {'form': form})
+    return render(request, 'registration/register.html',  {'form': form, 'errors': errors})
 
 @login_required
 def dashboard(request):
