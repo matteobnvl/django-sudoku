@@ -55,6 +55,17 @@ def play(request, pk):
         'tableau': json.loads(sudoku.tableau),
         'sudoku': sudoku,
     })
+
+@login_required
+def sudokus_user(request):
+    user_sudokus = Sudoku.objects.filter(player=request.user, is_finish=True)
+    user_sudokus_non_resolu = Sudoku.objects.filter(player=request.user, is_finish=False)
+    context = {
+        "user_sudokus": user_sudokus,
+        "user_sudokus_non_resolu" : user_sudokus_non_resolu,
+    }
+
+    return render(request, 'sudokus/sudokus_user.html', context)
     
 @csrf_exempt   
 @login_required

@@ -1,0 +1,166 @@
+{% extends 'base_site.html' %}
+
+{% block title %}Vos Sudokus{% endblock %}
+
+{% block content %}
+<div class="container bg-white px-4 lg:px-6 py-2.5">
+    <h1 class="text-3xl text-center font-semibold mb-8 mt-8">Mes Sudokus</h1>
+    
+    <!-- Début Filtres -->
+    <div class="flex justify-between px-6 lg:px-8 py-2.5">
+        <div>
+            <label for="filter" class="font-semibold">Filtrer par :</label>
+            <select id="filter" class="inline-flex items-center px-2 py-1 text-sm font-medium text-center bg-white-700 rounded-lg ">
+                <option value="all">All Sudokus</option>
+                <option value="resolu">Résolus</option>
+                <option value="non_resolu">Non résolus</option>
+            </select>
+        </div>
+        <div>
+            <label for="sort" class="font-semibold">Trier par :</label>
+            <select id="sort" class="inline-flex items-center px-2 py-1 text-sm font-medium text-center bg-white-700 rounded-lg">
+                <option value="all">Mois</option>
+                <option value="01">Janvier</option>
+                <option value="02">Février</option>
+                <option value="03">Mars</option>
+                <option value="04">Avril</option>
+                <option value="05">Mai</option>
+                <option value="06">Juin</option>
+                <option value="07">Juillet</option>
+                <option value="08">Aout</option>
+                <option value="09">Septembre</option>
+                <option value="10">Octobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Décembre</option>
+            </select>
+        </div>
+        <div>
+            <label for="year" class="font-semibold">Trier par :</label>
+            <select id="year" class="inline-flex items-center px-2 py-1 text-sm font-medium text-center bg-white-700 rounded-lg">
+                <option value="all">Années</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+            </select>
+        </div>
+    </div>
+    <!-- Fin Filtres -->
+    <div id="sudoku-list">
+        {% if user_sudokus %}
+            <table class="border-collapse w-full mt-6">
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Niveau</th>
+                        <th class="border border-gray-300 px-4 py-2">Date de création</th>
+                        <th class="border border-gray-300 px-4 py-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sudoku in user_sudokus %}
+                        <tr class="border border-gray-300">
+                            <td class="border border-gray-300 px-4 py-2 font-semibold text-center">{{ sudoku.id }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">{{ sudoku.niveau }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center" data-created-at="{{ sudoku.created_at }}">{{ sudoku.created_at }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <a href="{% url 'play' sudoku.id %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-green-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                    Revoir le Sudoku
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    
+    <div id="non-resolu-list">
+        {% if user_sudokus_non_resolu %}
+            <table class="border-collapse w-full mt-6">
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2">ID</th>
+                        <th class="border border-gray-300 px-4 py-2">Niveau</th>
+                        <th class="border border-gray-300 px-4 py-2">Date de création</th>
+                        <th class="border border-gray-300 px-4 py-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sudoku in user_sudokus_non_resolu %}
+                        <tr class="border border-gray-300">
+                            <td class="border border-gray-300 px-4 py-2 font-semibold text-center">{{ sudoku.id }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">{{ sudoku.niveau }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center" data-created-at="{{ sudoku.created_at }}">{{ sudoku.created_at }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">
+                                <a href="{% url 'play' sudoku.id %}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-yellow-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                    Continuer à jouer
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    </div>
+    {% else %}
+        <p  id="no-sudoku-message">Vous n'avez pas encore créé de Sudokus.</p>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        
+        const filterSelect = document.getElementById("filter");
+        const sortSelect = document.getElementById("sort");
+        const yearSelect = document.getElementById("year");
+
+        filterSelect.addEventListener("change", updateSudokuList);
+        sortSelect.addEventListener("change", updateSudokuList);
+        yearSelect.addEventListener("change", updateSudokuList);
+
+        function updateSudokuList() {
+            const filterValue = filterSelect.value;
+            const sortValue = sortSelect.value;
+            const yearValue = yearSelect.value;
+
+            const sudokuList = document.getElementById("sudoku-list");
+            const nonResoluList = document.getElementById("non-resolu-list");
+
+            sudokuList.style.display = "none";
+            nonResoluList.style.display = "none";
+
+            if (filterValue === "all") {
+                sudokuList.style.display = "block";
+                nonResoluList.style.display = "block";
+            } else if (filterValue === "resolu") {
+                sudokuList.style.display = "block";
+            } else if (filterValue === "non_resolu") {
+                nonResoluList.style.display = "block";
+            }
+            
+            const filterByMonthAndYear = (month, year) => {
+                const items = document.querySelectorAll("#sudoku-list tbody tr, #non-resolu-list tbody tr");
+                items.forEach((item) => {
+                    const itemMonth = new Date(item.dataset.createdAt).getMonth() + 1;
+                    const itemYear = new Date(item.dataset.createdAt).getFullYear();
+                    const monthCondition = month === "all" || itemMonth === parseInt(month);
+                    const yearCondition = year === "all" || itemYear === parseInt(year);
+                    item.style.display = monthCondition && yearCondition ? "block" : "none";
+                });
+
+                
+                const buttons = document.querySelectorAll("#sudoku-list tbody tr, #non-resolu-list tbody tr");
+                buttons.forEach((button) => {
+                    const buttonMonth = new Date(button.querySelector("[data-created-at]").dataset.createdAt).getMonth() + 1;
+                    const buttonYear = new Date(button.querySelector("[data-created-at]").dataset.createdAt).getFullYear();
+                    const monthCondition = month === "all" || buttonMonth === parseInt(month);
+                    const yearCondition = year === "all" || buttonYear === parseInt(year);
+                    button.style.display = monthCondition && yearCondition ? "table-row" : "none";
+                });
+            };
+
+            filterByMonthAndYear(sortValue, yearValue);
+        }
+
+    });
+  
+</script>
+{% endblock %}
+
