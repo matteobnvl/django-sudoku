@@ -12,5 +12,6 @@ urlpatterns = [
     path('insert/', views.insert, name="insert"),
     path('delete/', views.delete, name="delete"),
     path('finish/', views.verif_sudoku, name="valid_sudoku"),
-    path('check/', views.check_error, name="check")
+    path('check/', views.check_error, name="check"),
+    path('sudokus/', views.sudokus_user, name='sudokus_user')
 ]
